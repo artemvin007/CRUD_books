@@ -1,0 +1,96 @@
+from flask import Flask, request
+
+BOOKS = []
+
+app = Flask('CRUD_books')
+
+def find_book(book_name):
+  for book in BOOKS:
+    if book['name'] == book_name:
+      return book
+  return False
+
+@app.route('/')
+def get_books():
+  return (
+  '<form>\
+    <a href="https://crudbook.artemvin007.repl.co/get_info"><h1>Создать</h1></a>\
+    <a href="https://crudbook.artemvin007.repl.co/read"><h1>Читать</h1></a>\
+    <a href="https://crudbook.artemvin007.repl.co/redaction"><h1>Редактировать</h1></a>\
+    <a href="https://crudbook.artemvin007.repl.co/delete"><h1>Удалить</h1></a>\
+  </form>')
+
+@app.route('/create', methods = ['POST'])
+def post_create_book():
+  book_name = request.form['book_name']
+  book_id = 0
+  for book in BOOKS:
+    if book['id'] >= book_id:
+      book_id = book['id'] + 1
+  BOOKS.append({'name': book_name, 'text': '', 'id': book_id})
+  return {'status': True, 'books': BOOKS}
+
+@app.route('/get_info')
+def create_book():
+  return '<form action = "https://crudbook.artemvin007.repl.co/create" method = "post">\
+         <p>Введите название:</p>\
+         <p><input type = "text" name = "book_name" /></p>\
+         <p><input type = "submit" value = "Создать" /></p>\
+      </form>  '
+
+@app.route('/read/<book_name>')
+def read_book(book_name = 0):
+  for book in BOOKS:
+    if book['name'] == book_name:
+      return book['text']
+  return 'NONE'
+
+@app.route('/read')
+def get_refs_for_read():
+  refs = ''
+  for book in BOOKS:
+    refs +=  ' <a href=https://crudbook.artemvin007.repl.co/read/' + book["name"] + '><h1>' + book["name"] + '</h1></a>'
+  return refs
+
+@app.route('/delete')
+def get_refs_for_delete():
+  refs = ''
+  for book in BOOKS:
+    refs +=  ' <a href=https://crudbook.artemvin007.repl.co/delete/' + book["name"] + '><h1>' + book["name"] + '</h1></a>'
+  return refs
+
+@app.route('/delete/<book_name>')
+def delete(book_name):
+  for book in BOOKS:
+    if book_name == book['name']:
+      BOOKS.remove(book)
+      return 'Deleted'
+  return 'This book are not here'
+
+@app.route('/redaction')
+def get_refs_for_redaction():
+  refs = ''
+  for book in BOOKS:
+    refs +=  ' <a href=https://crudbook.artemvin007.repl.co/redaction/' + book["name"] + '><h1>' + book["name"] + '</h1></a>'
+  return refs
+
+@app.route('/redaction/<book_name>')
+def redaction(book_name):
+  for book in BOOKS:
+    if book['name'] == book_name:
+      return '<form action = "https://crudbook.artemvin007.repl.co/made_redaction/' + book_name +  '" method = "post">\
+            <p>Измените текст:</p>\
+            <p><textarea rows = "50" cols = "100" name = "text">'+ book["text"]+ '</textarea></p>\
+            <p><input type = "submit" value = "Изменить" /></p>\
+          </form>  '
+  return 'NONE'
+
+@app.route('/made_redaction/<book_name>', methods = ['POST'])
+def post_redact_book(book_name):
+  text = request.form['text']
+  for book_iterator in range(len(BOOKS)):
+    if BOOKS[book_iterator]['name'] == book_name:
+      BOOKS[book_iterator]['text'] = text
+  return {'status': True, 'books': BOOKS}
+
+app.run(host = '0.0.0.0', port = 3000)
